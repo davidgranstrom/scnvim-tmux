@@ -3,16 +3,16 @@ local postwin = require 'scnvim.postwin'
 local tmux = {}
 
 local function tmux_send(tbl)
-  local cmd = {'tmux', unpack(tbl)}
+  local cmd = { 'tmux', unpack(tbl) }
   return vim.fn.system(cmd)
 end
 
 local function get_pane_id()
-  local id = tmux_send({
+  local id = tmux_send {
     'display-message',
     '-p',
     '#{pane_id}',
-  })
+  }
   return id:gsub('\n', '')
 end
 
@@ -20,12 +20,12 @@ local function is_open()
   if not tmux.pane_id then
     return false
   end
-  local pane_ids = tmux_send({
+  local pane_ids = tmux_send {
     'list-panes',
     '-F',
-    '#{pane_id}'
-  })
-  pane_ids = vim.split(pane_ids, '\n', {trimempty = true})
+    '#{pane_id}',
+  }
+  pane_ids = vim.split(pane_ids, '\n', { trimempty = true })
   local result = vim.tbl_filter(function(id)
     return id == tmux.pane_id
   end, pane_ids)
@@ -44,7 +44,7 @@ function tmux.open()
   if not tmux.post_buffer then
     tmux.create()
   end
-  tmux_send({
+  tmux_send {
     'split-window',
     tmux.horizontal and '-v' or '-h',
     '-l',
@@ -52,19 +52,19 @@ function tmux.open()
     'tail',
     '-F',
     tmux.path,
-  })
+  }
   tmux.pane_id = get_pane_id()
-  tmux_send({ 'last-pane' })
+  tmux_send { 'last-pane' }
   return tmux.pane_id
 end
 
 function tmux.close()
   if tmux.pane_id then
-    tmux_send({
+    tmux_send {
       'kill-pane',
       '-t',
-      tmux.pane_id
-    })
+      tmux.pane_id,
+    }
     tmux.pane_id = nil
   end
 end
@@ -102,7 +102,7 @@ postwin.open = tmux.open
 postwin.close = tmux.close
 postwin.toggle = tmux.toggle
 
-return require'scnvim'.register_extension {
+return require('scnvim').register_extension {
   setup = function(ext_config, user_config)
     tmux.horizontal = ext_config.horizontal == nil and true or ext_config.horizontal
     tmux.size = ext_config.size or '35%'
@@ -110,8 +110,8 @@ return require'scnvim'.register_extension {
 
   health = function()
     local health = require 'health'
-    local has_tmux = vim.fn.executable('tmux')
-    local has_tail = vim.fn.executable('tail')
+    local has_tmux = vim.fn.executable 'tmux'
+    local has_tail = vim.fn.executable 'tail'
     if has_tmux == 1 then
       health.report_ok 'tmux executable found'
     else
