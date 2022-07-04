@@ -67,6 +67,25 @@ scnvim.setup {
 
 The `$1` marker will be replaced by the value of `tmux.path`.
 
+Another example using `bat` for syntax highlighting.
+
+Save this file as `scnvim-tmux.sh` and make it available in your `$PATH`:
+
+```shell
+#!/bin/sh
+
+tail -f "$1" | bat --paging=never -l log
+```
+
+And use this in the scnvim extension config:
+
+```lua
+tmux = {
+  cmd = 'scnvim-tmux.sh',
+  args = { '$1' },
+}
+```
+
 ## License
 
 ```
