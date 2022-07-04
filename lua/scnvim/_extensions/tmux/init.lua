@@ -32,8 +32,15 @@ local function is_open()
   return #result == 1
 end
 
+local function resolve_cmd_args()
+  for index, str in ipairs(tmux.args) do
+    if str == '$1' then
+      tmux.args[index] = str:gsub('$1', tmux.path)
+    end
+  end
+end
+
 function tmux.create()
-  tmux.path = vim.fn.tempname()
   tmux.post_buffer = io.open(tmux.path, 'wb')
 end
 
@@ -49,9 +56,8 @@ function tmux.open()
     tmux.horizontal and '-v' or '-h',
     '-l',
     tmux.size,
-    'tail',
-    '-F',
-    tmux.path,
+    tmux.cmd,
+    unpack(tmux.args),
   }
   tmux.pane_id = get_pane_id()
   tmux_send { 'last-pane' }
@@ -104,23 +110,23 @@ postwin.toggle = tmux.toggle
 
 return require('scnvim').register_extension {
   setup = function(ext_config, user_config)
+    tmux.path = ext_config.path or vim.fn.tempname()
     tmux.horizontal = ext_config.horizontal == nil and true or ext_config.horizontal
     tmux.size = ext_config.size or '35%'
+    tmux.cmd = ext_config.cmd or 'tail'
+    tmux.args = ext_config.args or { '-F', '$1' }
+    resolve_cmd_args()
   end,
 
   health = function()
     local health = require 'health'
     local has_tmux = vim.fn.executable 'tmux'
-    local has_tail = vim.fn.executable 'tail'
     if has_tmux == 1 then
       health.report_ok 'tmux executable found'
     else
       health.report_error 'could not find tmux executable'
     end
-    if has_tail == 1 then
-      health.report_ok 'tail executable found'
-    else
-      health.report_error 'could not find tail executable'
-    end
+    health.report_info(string.format('cmd: %s', tmux.cmd))
+    health.report_info(string.format('args: %s', vim.inspect(tmux.args)))
   end,
 }

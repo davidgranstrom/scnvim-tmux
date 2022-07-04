@@ -42,12 +42,30 @@ The example below shows the default values.
 scnvim.setup {
   extensions = {
     tmux = {
+      path = vim.fn.tempname(),
       horizontal = true,
       size = '35%',
+      cmd = 'tail',
+      args = { '-F', '$1' }
     },
   },
 }
 ```
+
+You can use a different binary than `tail` to view the output. Here's an example that uses `less`:
+
+```lua
+scnvim.setup {
+  extensions = {
+    tmux = {
+      cmd = 'less',
+      args = { '-S', '+F', '$1' },
+    }
+  }
+}
+```
+
+The `$1` marker will be replaced by the value of `tmux.path`.
 
 ## License
 
