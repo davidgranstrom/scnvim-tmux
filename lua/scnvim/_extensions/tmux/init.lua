@@ -87,6 +87,7 @@ function tmux.destroy()
   tmux.close()
   if tmux.post_buffer then
     tmux.post_buffer:close()
+    tmux.post_buffer = nil
   end
 end
 
